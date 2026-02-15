@@ -6,8 +6,12 @@ from graph.workflow import build_review_graph
 from github_int.client import GitHubClient
 from github_int.utils import extract_code_from_pr
 
-# Load environment variables
+# Load environment variables (local development)
 load_dotenv()
+
+# Initialize session state for secrets
+if "github_token_input" not in st.session_state:
+    st.session_state.github_token_input = ""
 
 # Page configuration
 st.set_page_config(
@@ -166,11 +170,18 @@ elif review_mode == "🔗 GitHub PR":
     with col3:
         pr_number = st.number_input("PR Number", min_value=1, value=1)
     
+    # Try to get GitHub token from secrets first, then fall back to user input
+    default_token = ""
+    if "GITHUB_TOKEN" in st.secrets:
+        default_token = st.secrets["GITHUB_TOKEN"]
+        st.info("✅ Using GitHub token from secrets")
+    
     github_token = st.text_input(
         "GitHub Token",
         type="password",
         placeholder="Enter your GitHub token",
-        help="Your GitHub personal access token (PAT)"
+        value=default_token,
+        help="Your GitHub personal access token (PAT). If using Streamlit Cloud, set in 'Manage app' > 'Secrets'"
     )
     
     if st.button("📥 Fetch & Review PR", type="primary", use_container_width=True):

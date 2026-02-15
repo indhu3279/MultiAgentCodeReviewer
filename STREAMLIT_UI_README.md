@@ -45,11 +45,41 @@ GROQ_API_KEY=your_groq_api_key_here
 
 ## Running the App
 
+### Locally
+
 ```bash
 streamlit run app.py
 ```
 
 The app will open in your default browser at `http://localhost:8501`
+
+### On Streamlit Community Cloud
+
+1. **Push your code to GitHub** (make sure `.env` is in `.gitignore` for security)
+
+2. **Go to [Streamlit Cloud](https://share.streamlit.io)** and sign in with GitHub
+
+3. **Create a new app**:
+   - Select your repository
+   - Set the main file path to `app.py`
+   - Click "Deploy"
+
+4. **Set environment secrets** (critical for fixing the `GROQ_API_KEY` error):
+   - Click the three dots (⋯) in the top right → "Manage app"
+   - Scroll to **Secrets** section
+   - Add your secrets in the text editor:
+   ```
+   GROQ_API_KEY=your_groq_api_key_here
+   GITHUB_TOKEN=your_github_token_here
+   ```
+   - Click "Save"
+
+5. **Reboot the app**: Click the three dots (⋯) → "Reboot app"
+
+#### ⚠️ Why the `GROQ_API_KEY` Error Occurs
+Your app was trying to initialize the LLM clients at import time (in `graph/nodes.py`), but the `GROQ_API_KEY` environment variable was not available on Streamlit Cloud. We've added a clear error message in `config/llm.py` that will now tell you to set the secret in the app management panel.
+
+**Note**: Never commit your `.env` file to GitHub. Streamlit Cloud reads secrets from the app management panel only.
 
 ## Usage
 
@@ -135,16 +165,24 @@ MultiAgentCodeReviewer/
 
 ## Troubleshooting
 
-### "GITHUB_TOKEN not set in environment"
-- Ensure your `.env` file is in the project root
-- Set the `GITHUB_TOKEN` variable in your `.env` file
+### ❌ "GROQ_API_KEY is not set" Error (on Streamlit Cloud)
+**Solution**:
+1. Open your app on Streamlit Cloud
+2. Click the three dots (⋯) in the top right → "Manage app"
+3. Go to **Secrets** section
+4. Add `GROQ_API_KEY=your_key_here`
+5. Save and reboot the app
 
-### "No code diff found in PR"
+### ❌ "GITHUB_TOKEN not set in environment"
+**Local fix**: Ensure your `.env` file is in the project root with `GITHUB_TOKEN=your_token`  
+**Streamlit Cloud**: Set it in Secrets (same as GROQ_API_KEY above)
+
+### ❌ "No code diff found in PR"
 - Verify the PR number is correct
 - Check that the PR has actual code changes
 - Ensure your token has repository access
 
-### "LLM response error"
-- Verify your LLM API key (e.g., GROQ_API_KEY) is set
-- Check API rate limits and quota
+### ❌ "LLM response error"
+- Verify your GROQ API key is valid and active
+- Check API rate limits and quota on [Groq Console](https://console.groq.com)
 - Ensure you have internet connectivity
